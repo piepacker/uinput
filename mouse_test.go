@@ -49,6 +49,11 @@ func TestBasicMouseMoves(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to perform mouse move using negative coordinates. Last error was: %s\n", err)
 	}
+
+	err = relDev.MoveTo(50, 50)
+	if err != nil {
+		t.Fatalf("Failed to perform mouse move using absolute coordinates. Last error was: %s\n", err)
+	}
 }
 
 func TestMouseButtonPresses(t *testing.T) {

@@ -10,6 +10,9 @@ import (
 // A Mouse is a device that will trigger an absolute change event.
 // For details see: https://www.kernel.org/doc/Documentation/input/event-codes.txt
 type Mouse interface {
+	// MoveTo will move the cursor to the specified position on the screen
+	MoveTo(x int32, y int32) error
+
 	// MoveLeft will move the mouse cursor left by the given number of pixel.
 	MoveLeft(pixel int32) error
 
@@ -89,6 +92,11 @@ func CreateMouse(path string, name []byte) (Mouse, error) {
 	}
 
 	return vMouse{name: name, deviceFile: fd}, nil
+}
+
+// MoveTo will move the cursor to the specified position on the screen
+func (vRel vMouse) MoveTo(x int32, y int32) error {
+	return sendAbsEvent(vRel.deviceFile, x, y)
 }
 
 // MoveLeft will move the cursor left by the number of pixel specified.
@@ -216,7 +224,7 @@ func (vRel vMouse) Close() error {
 func createMouse(path string, name []byte) (fd *os.File, err error) {
 	deviceFile, err := createDeviceFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("could not create relative axis input device: %v", err)
+		return nil, fmt.Errorf("could not create absolute axis input device: %v", err)
 	}
 
 	err = registerDevice(deviceFile, uintptr(evKey))
@@ -241,13 +249,36 @@ func createMouse(path string, name []byte) (fd *os.File, err error) {
 	}
 
 	// register relative events
-	for _, event := range []int{relX, relY, relWheel, relHWheel} {
+	for _, event := range []int{relWheel, relHWheel} {
 		err = ioctl(deviceFile, uiSetRelBit, uintptr(event))
 		if err != nil {
 			deviceFile.Close()
 			return nil, fmt.Errorf("failed to register relative event %v: %v", event, err)
 		}
 	}
+
+	err = registerDevice(deviceFile, uintptr(evAbs))
+	if err != nil {
+		deviceFile.Close()
+		return nil, fmt.Errorf("failed to register absolute axis input device: %v", err)
+	}
+
+	// register x and y-axis events
+	for _, event := range []int{absX, absY} {
+		err = ioctl(deviceFile, uiSetAbsBit, uintptr(event))
+		if err != nil {
+			_ = deviceFile.Close()
+			return nil, fmt.Errorf("failed to register absolute axis event %v: %v", event, err)
+		}
+	}
+
+	var absMin [absSize]int32
+	absMin[absX] = 0
+	absMin[absY] = 0
+
+	var absMax [absSize]int32
+	absMax[absX] = 1920
+	absMax[absY] = 1080
 
 	return createUsbDevice(deviceFile,
 		uinputUserDev{
@@ -256,7 +287,9 @@ func createMouse(path string, name []byte) (fd *os.File, err error) {
 				Bustype: busUsb,
 				Vendor:  0x4711,
 				Product: 0x0816,
-				Version: 1}})
+				Version: 1},
+			Absmin: absMin,
+			Absmax: absMax})
 }
 
 func sendRelEvent(deviceFile *os.File, eventCode uint16, pixel int32) error {
