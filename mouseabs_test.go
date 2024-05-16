@@ -8,55 +8,30 @@ import (
 )
 
 // This test confirms that all basic mouse moves are working as expected.
-func TestBasicMouseMoves(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
+func TestBasicMouseAbsMoves(t *testing.T) {
+	relDev, err := CreateMouseAbs("/dev/uinput", []byte("Test Basic MouseAbs"), 0, 1900, 0, 1080)
 	if err != nil {
 		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
 	}
-	defer func(relDev Mouse) {
+	defer func(relDev MouseAbs) {
 		err := relDev.Close()
 		if err != nil {
 			t.Fatalf("failed to close virtual mouse: %v", err)
 		}
 	}(relDev)
 
-	err = relDev.MoveLeft(100)
+	err = relDev.MoveTo(100, 200)
 	if err != nil {
 		t.Fatalf("Failed to move mouse left. Last error was: %s\n", err)
 	}
-
-	err = relDev.MoveRight(150)
-	if err != nil {
-		t.Fatalf("Failed to move mouse right. Last error was: %s\n", err)
-	}
-
-	err = relDev.MoveUp(50)
-	if err != nil {
-		t.Fatalf("Failed to move mouse up. Last error was: %s\n", err)
-	}
-
-	err = relDev.MoveDown(100)
-	if err != nil {
-		t.Fatalf("Failed to move mouse down. Last error was: %s\n", err)
-	}
-
-	err = relDev.Move(100, 100)
-	if err != nil {
-		t.Fatalf("Failed to perform mouse move using positive coordinates. Last error was: %s\n", err)
-	}
-
-	err = relDev.Move(-100, -100)
-	if err != nil {
-		t.Fatalf("Failed to perform mouse move using negative coordinates. Last error was: %s\n", err)
-	}
 }
 
-func TestMouseButtonPresses(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
+func TestMouseAbsButtonPresses(t *testing.T) {
+	relDev, err := CreateMouseAbs("/dev/uinput", []byte("Test Basic MouseAbs"), 0, 1900, 0, 1080)
 	if err != nil {
 		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
 	}
-	defer func(relDev Mouse) {
+	defer func(relDev MouseAbs) {
 		err := relDev.Close()
 		if err != nil {
 			t.Fatalf("failed to close virtual mouse: %v", err)
@@ -94,12 +69,12 @@ func TestMouseButtonPresses(t *testing.T) {
 	}
 }
 
-func TestVMouse_Wheel(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
+func TestVMouseAbs_Wheel(t *testing.T) {
+	relDev, err := CreateMouseAbs("/dev/uinput", []byte("Test Basic MouseAbs"), 0, 1900, 0, 1080)
 	if err != nil {
 		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
 	}
-	defer func(relDev Mouse) {
+	defer func(relDev MouseAbs) {
 		err := relDev.Close()
 		if err != nil {
 			t.Fatalf("failed to close virtual mouse: %v", err)
@@ -117,12 +92,12 @@ func TestVMouse_Wheel(t *testing.T) {
 	}
 }
 
-func TestMouseClicks(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
+func TestMouseAbsClicks(t *testing.T) {
+	relDev, err := CreateMouseAbs("/dev/uinput", []byte("Test Basic MouseAbs"), 0, 1900, 0, 1080)
 	if err != nil {
 		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
 	}
-	defer func(relDev Mouse) {
+	defer func(relDev MouseAbs) {
 		err := relDev.Close()
 		if err != nil {
 			t.Fatalf("failed to close virtual mouse: %v", err)
@@ -146,23 +121,23 @@ func TestMouseClicks(t *testing.T) {
 
 }
 
-func TestMouseCreationFailsOnEmptyPath(t *testing.T) {
+func TestMouseAbsCreationFailsOnEmptyPath(t *testing.T) {
 	expected := "device path must not be empty"
-	_, err := CreateMouse("", []byte("MouseDevice"))
+	_, err := CreateMouseAbs("", []byte("MouseAbsDevice"), 0, 1900, 0, 1080)
 	if err.Error() != expected {
 		t.Fatalf("Expected: %s\nActual: %s", expected, err)
 	}
 }
 
-func TestMouseCreationFailsOnNonExistentPathName(t *testing.T) {
+func TestMouseAbsCreationFailsOnNonExistentPathName(t *testing.T) {
 	path := "/some/bogus/path"
-	_, err := CreateMouse(path, []byte("MouseDevice"))
+	_, err := CreateMouseAbs(path, []byte("MouseAbsDevice"), 0, 1900, 0, 1080)
 	if !os.IsNotExist(err) {
 		t.Fatalf("Expected: os.IsNotExist error\nActual: %s", err)
 	}
 }
 
-func TestMouseCreationFailsOnWrongPathName(t *testing.T) {
+func TestMouseAbsCreationFailsOnWrongPathName(t *testing.T) {
 	file, err := ioutil.TempFile(os.TempDir(), "uinput-mouse-test-")
 	if err != nil {
 		t.Fatalf("Failed to setup test. Unable to create tempfile: %v", err)
@@ -170,23 +145,23 @@ func TestMouseCreationFailsOnWrongPathName(t *testing.T) {
 	defer file.Close()
 
 	expected := "failed to register key device: failed to close device: inappropriate ioctl for device"
-	_, err = CreateMouse(file.Name(), []byte("DialDevice"))
+	_, err = CreateMouseAbs(file.Name(), []byte("DialDevice"), 0, 1900, 0, 1080)
 	if err == nil || !(expected == err.Error()) {
 		t.Fatalf("Expected: %s\nActual: %s", expected, err)
 	}
 }
 
-func TestMouseCreationFailsIfNameIsTooLong(t *testing.T) {
+func TestMouseAbsCreationFailsIfNameIsTooLong(t *testing.T) {
 	name := "adsfdsferqewoirueworiuejdsfjdfa;ljoewrjeworiewuoruew;rj;kdlfjoeai;jfewoaifjef;das"
 	expected := fmt.Sprintf("device name %s is too long (maximum of %d characters allowed)", name, uinputMaxNameSize)
-	_, err := CreateMouse("/dev/uinput", []byte(name))
+	_, err := CreateMouseAbs("/dev/uinput", []byte(name), 0, 1900, 0, 1080)
 	if err.Error() != expected {
 		t.Fatalf("Expected: %s\nActual: %s", expected, err)
 	}
 }
 
-func TestMouseLeftClickFailsIfDeviceIsClosed(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
+func TestMouseAbsLeftClickFailsIfDeviceIsClosed(t *testing.T) {
+	relDev, err := CreateMouseAbs("/dev/uinput", []byte("Test Basic MouseAbs"), 0, 1900, 0, 1080)
 	if err != nil {
 		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
 	}
@@ -198,8 +173,8 @@ func TestMouseLeftClickFailsIfDeviceIsClosed(t *testing.T) {
 	}
 }
 
-func TestMouseLeftPressFailsIfDeviceIsClosed(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
+func TestMouseAbsLeftPressFailsIfDeviceIsClosed(t *testing.T) {
+	relDev, err := CreateMouseAbs("/dev/uinput", []byte("Test Basic MouseAbs"), 0, 1900, 0, 1080)
 	if err != nil {
 		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
 	}
@@ -211,8 +186,8 @@ func TestMouseLeftPressFailsIfDeviceIsClosed(t *testing.T) {
 	}
 }
 
-func TestMouseLeftReleaseFailsIfDeviceIsClosed(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
+func TestMouseAbsLeftReleaseFailsIfDeviceIsClosed(t *testing.T) {
+	relDev, err := CreateMouseAbs("/dev/uinput", []byte("Test Basic MouseAbs"), 0, 1900, 0, 1080)
 	if err != nil {
 		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
 	}
@@ -224,8 +199,8 @@ func TestMouseLeftReleaseFailsIfDeviceIsClosed(t *testing.T) {
 	}
 }
 
-func TestMouseRightClickFailsIfDeviceIsClosed(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
+func TestMouseAbsRightClickFailsIfDeviceIsClosed(t *testing.T) {
+	relDev, err := CreateMouseAbs("/dev/uinput", []byte("Test Basic MouseAbs"), 0, 1900, 0, 1080)
 	if err != nil {
 		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
 	}
@@ -237,8 +212,8 @@ func TestMouseRightClickFailsIfDeviceIsClosed(t *testing.T) {
 	}
 }
 
-func TestMouseRightPressFailsIfDeviceIsClosed(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
+func TestMouseAbsRightPressFailsIfDeviceIsClosed(t *testing.T) {
+	relDev, err := CreateMouseAbs("/dev/uinput", []byte("Test Basic MouseAbs"), 0, 1900, 0, 1080)
 	if err != nil {
 		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
 	}
@@ -250,8 +225,8 @@ func TestMouseRightPressFailsIfDeviceIsClosed(t *testing.T) {
 	}
 }
 
-func TestVMouse_RightReleaseFailsIfDeviceIsClosed(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
+func TestVMouseAbs_RightReleaseFailsIfDeviceIsClosed(t *testing.T) {
+	relDev, err := CreateMouseAbs("/dev/uinput", []byte("Test Basic MouseAbs"), 0, 1900, 0, 1080)
 	if err != nil {
 		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
 	}
@@ -263,8 +238,8 @@ func TestVMouse_RightReleaseFailsIfDeviceIsClosed(t *testing.T) {
 	}
 }
 
-func TestMouseMiddleClickFailsIfDeviceIsClosed(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
+func TestMouseAbsMiddleClickFailsIfDeviceIsClosed(t *testing.T) {
+	relDev, err := CreateMouseAbs("/dev/uinput", []byte("Test Basic MouseAbs"), 0, 1900, 0, 1080)
 	if err != nil {
 		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
 	}
@@ -276,8 +251,8 @@ func TestMouseMiddleClickFailsIfDeviceIsClosed(t *testing.T) {
 	}
 }
 
-func TestMouseMiddlePressFailsIfDeviceIsClosed(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
+func TestMouseAbsMiddlePressFailsIfDeviceIsClosed(t *testing.T) {
+	relDev, err := CreateMouseAbs("/dev/uinput", []byte("Test Basic MouseAbs"), 0, 1900, 0, 1080)
 	if err != nil {
 		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
 	}
@@ -289,8 +264,8 @@ func TestMouseMiddlePressFailsIfDeviceIsClosed(t *testing.T) {
 	}
 }
 
-func TestVMouse_MiddleReleaseFailsIfDeviceIsClosed(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
+func TestVMouseAbs_MiddleReleaseFailsIfDeviceIsClosed(t *testing.T) {
+	relDev, err := CreateMouseAbs("/dev/uinput", []byte("Test Basic MouseAbs"), 0, 1900, 0, 1080)
 	if err != nil {
 		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
 	}
@@ -302,117 +277,21 @@ func TestVMouse_MiddleReleaseFailsIfDeviceIsClosed(t *testing.T) {
 	}
 }
 
-func TestMouseMoveUpFailsIfDeviceIsClosed(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
+func TestMouseAbsMoveToFailsIfDeviceIsClosed(t *testing.T) {
+	relDev, err := CreateMouseAbs("/dev/uinput", []byte("Test Basic MouseAbs"), 0, 1900, 0, 1080)
 	if err != nil {
 		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
 	}
 	relDev.Close()
 
-	err = relDev.MoveUp(1)
+	err = relDev.MoveTo(1, 1)
 	if err == nil {
 		t.Fatalf("Expected error due to closed device, but no error was returned.")
 	}
 }
 
-func TestMouseMoveDownFailsIfDeviceIsClosed(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
-	if err != nil {
-		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
-	}
-	relDev.Close()
-
-	err = relDev.MoveDown(1)
-	if err == nil {
-		t.Fatalf("Expected error due to closed device, but no error was returned.")
-	}
-}
-
-func TestMouseMoveLeftFailsIfDeviceIsClosed(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
-	if err != nil {
-		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
-	}
-	relDev.Close()
-
-	err = relDev.MoveLeft(1)
-	if err == nil {
-		t.Fatalf("Expected error due to closed device, but no error was returned.")
-	}
-}
-
-func TestMouseMoveRightFailsIfDeviceIsClosed(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
-	if err != nil {
-		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
-	}
-	relDev.Close()
-
-	err = relDev.MoveRight(1)
-	if err == nil {
-		t.Fatalf("Expected error due to closed device, but no error was returned.")
-	}
-}
-
-func TestMouseMoveFailsIfNegativeValueIsPassed(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
-	if err != nil {
-		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
-	}
-
-	if err = relDev.MoveUp(-1); err == nil {
-		t.Fatalf("Expected an error due to negative imput value, but error silently passed.")
-	}
-
-	if err = relDev.MoveDown(-1); err == nil {
-		t.Fatalf("Expected an error due to negative imput value, but error silently passed.")
-	}
-
-	if err = relDev.MoveLeft(-1); err == nil {
-		t.Fatalf("Expected an error due to negative imput value, but error silently passed.")
-	}
-
-	if err = relDev.MoveRight(-1); err == nil {
-		t.Fatalf("Expected an error due to negative imput value, but error silently passed.")
-	}
-
-	if err = relDev.Close(); err != nil {
-		t.Fatalf("Failed to close device. Last error was: %v", err)
-	}
-
-}
-
-// it doesn't make much sense to pass zero as a value, but is technically ok and should therefore work
-func TestMouseMoveByZeroDoesNotErrorOut(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
-	if err != nil {
-		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
-	}
-
-	if err = relDev.MoveUp(0); err != nil {
-		t.Fatalf("Expected an error due to zero imput value, but error silently passed.")
-	}
-
-	if err = relDev.MoveDown(0); err != nil {
-		t.Fatalf("Expected an error due to zero imput value, but error silently passed.")
-	}
-
-	if err = relDev.MoveLeft(0); err != nil {
-		t.Fatalf("Expected an error due to zero imput value, but error silently passed.")
-	}
-
-	if err = relDev.MoveRight(0); err != nil {
-		t.Fatalf("Expected an error due to zero imput value, but error silently passed.")
-	}
-
-	if err = relDev.Close(); err != nil {
-		t.Fatalf("Failed to close device. Last error was: %v", err)
-	}
-
-}
-
-func TestMouseWheelFailsIfDeviceIsClosed(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
+func TestMouseAbsWheelFailsIfDeviceIsClosed(t *testing.T) {
+	relDev, err := CreateMouseAbs("/dev/uinput", []byte("Test Basic MouseAbs"), 0, 1900, 0, 1080)
 	if err != nil {
 		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
 	}
@@ -424,8 +303,8 @@ func TestMouseWheelFailsIfDeviceIsClosed(t *testing.T) {
 	}
 }
 
-func TestMouseSyspath(t *testing.T) {
-	relDev, err := CreateMouse("/dev/uinput", []byte("Test Basic Mouse"))
+func TestMouseAbsSyspath(t *testing.T) {
+	relDev, err := CreateMouseAbs("/dev/uinput", []byte("Test Basic MouseAbs"), 0, 1900, 0, 1080)
 	if err != nil {
 		t.Fatalf("Failed to create the virtual mouse. Last error was: %s\n", err)
 	}
