@@ -39,6 +39,7 @@ func createVGenericGamepadDevice(path string, name []byte, vendor uint16, produc
 	}
 
 	for _, code := range keys {
+		fmt.Printf("registering uiSetKeyBit 0x%x\n", code)
 		err = ioctl(deviceFile, uiSetKeyBit, uintptr(code))
 		if err != nil {
 			_ = deviceFile.Close()
@@ -54,6 +55,7 @@ func createVGenericGamepadDevice(path string, name []byte, vendor uint16, produc
 	}
 
 	for _, event := range absEvents {
+		fmt.Printf("registering uiSetAbsBit 0x%x\n", event)
 		err = ioctl(deviceFile, uiSetAbsBit, uintptr(event))
 		if err != nil {
 			_ = deviceFile.Close()
