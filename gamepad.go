@@ -51,10 +51,16 @@ type Gamepad interface {
 	// RightStickMoveY performs a movement of the right stick along the y-axis
 	RightStickMoveY(value float32) error
 
+	// SendStickAxisEvent performs a movement of a stick along an axis
+	SendStickAxisEvent(absCode uint16, value float32) error
+
 	// LeftStickMove moves the left stick along the x and y-axis
 	LeftStickMove(x, y float32) error
 	// RightStickMove moves the right stick along the x and y-axis
 	RightStickMove(x, y float32) error
+
+	// SendStickEvent moves a stick along the x and y-axis
+	SendStickEvent(values map[uint16]float32) error
 
 	// HatPress will issue a hat-press event in the given direction
 	HatPress(direction HatDirection) error
@@ -110,19 +116,19 @@ func (vg vGamepad) ButtonUp(key int) error {
 }
 
 func (vg vGamepad) LeftStickMoveX(value float32) error {
-	return vg.sendStickAxisEvent(absX, value)
+	return vg.SendStickAxisEvent(absX, value)
 }
 
 func (vg vGamepad) LeftStickMoveY(value float32) error {
-	return vg.sendStickAxisEvent(absY, value)
+	return vg.SendStickAxisEvent(absY, value)
 }
 
 func (vg vGamepad) RightStickMoveX(value float32) error {
-	return vg.sendStickAxisEvent(absRX, value)
+	return vg.SendStickAxisEvent(absRX, value)
 }
 
 func (vg vGamepad) RightStickMoveY(value float32) error {
-	return vg.sendStickAxisEvent(absRY, value)
+	return vg.SendStickAxisEvent(absRY, value)
 }
 
 func (vg vGamepad) RightStickMove(x, y float32) error {
@@ -130,7 +136,7 @@ func (vg vGamepad) RightStickMove(x, y float32) error {
 	values[absRX] = x
 	values[absRY] = y
 
-	return vg.sendStickEvent(values)
+	return vg.SendStickEvent(values)
 }
 
 func (vg vGamepad) LeftStickMove(x, y float32) error {
@@ -138,7 +144,7 @@ func (vg vGamepad) LeftStickMove(x, y float32) error {
 	values[absX] = x
 	values[absY] = y
 
-	return vg.sendStickEvent(values)
+	return vg.SendStickEvent(values)
 }
 
 func (vg vGamepad) HatPress(direction HatDirection) error {
@@ -149,7 +155,7 @@ func (vg vGamepad) HatRelease(direction HatDirection) error {
 	return vg.sendHatEvent(direction, Release)
 }
 
-func (vg vGamepad) sendStickAxisEvent(absCode uint16, value float32) error {
+func (vg vGamepad) SendStickAxisEvent(absCode uint16, value float32) error {
 	ev := inputEvent{
 		Type:  evAbs,
 		Code:  absCode,
@@ -169,7 +175,7 @@ func (vg vGamepad) sendStickAxisEvent(absCode uint16, value float32) error {
 	return syncEvents(vg.deviceFile)
 }
 
-func (vg vGamepad) sendStickEvent(values map[uint16]float32) error {
+func (vg vGamepad) SendStickEvent(values map[uint16]float32) error {
 	for code, value := range values {
 		ev := inputEvent{
 			Type:  evAbs,
