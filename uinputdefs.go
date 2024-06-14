@@ -15,6 +15,7 @@ const (
 	uiSetKeyBit  = 0x40045565
 
 	uiSetRelBit = 0x40045566
+	uiSetMscBit = 0x40045566
 	uiSetAbsBit = 0x40045567
 	busUsb      = 0x03
 )
@@ -25,6 +26,7 @@ const (
 	evKey     = 0x01
 	evRel     = 0x02
 	evAbs     = 0x03
+	evMsc     = 0x04
 	relX      = 0x0
 	relY      = 0x1
 	relHWheel = 0x6
@@ -51,6 +53,8 @@ const (
 	evMouseBtnRight  = 0x111
 	evMouseBtnMiddle = 0x112
 	evBtnTouch       = 0x14a
+
+	mscScan = 0x04
 )
 
 const (
