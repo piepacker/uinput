@@ -197,6 +197,7 @@ func (vg vGamepad) SendStickEvent(values map[uint16]float32) error {
 	return syncEvents(vg.deviceFile)
 }
 
+/*
 func (vg vGamepad) SendRawEvent(Type uint16, Code uint16, Value int32) error {
 	buf, err := inputEventToBuffer(inputEvent{
 		Type:  Type,
@@ -214,6 +215,7 @@ func (vg vGamepad) SendRawEvent(Type uint16, Code uint16, Value int32) error {
 
 	return syncEvents(vg.deviceFile)
 }
+/**/
 
 func (vg vGamepad) sendHatEvent(direction HatDirection, action HatAction) error {
 	var event uint16
