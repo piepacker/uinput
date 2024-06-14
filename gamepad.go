@@ -185,13 +185,31 @@ func (vg vGamepad) SendStickEvent(values map[uint16]float32) error {
 
 		buf, err := inputEventToBuffer(ev)
 		if err != nil {
-			return fmt.Errorf("writing abs stick event failed: %v", err)
+			return fmt.Errorf("failed to build abs stick event: %v", err)
 		}
 
 		_, err = vg.deviceFile.Write(buf)
 		if err != nil {
 			return fmt.Errorf("failed to write abs stick event to device file: %v", err)
 		}
+	}
+
+	return syncEvents(vg.deviceFile)
+}
+
+func (vg vGamepad) SendRawEvent(Type uint16, Code uint16, Value int32) error {
+	buf, err := inputEventToBuffer(inputEvent{
+		Type:  Type,
+		Code:  Code,
+		Value: Value,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to build raw event: [Type=0x%x, Code=0x%x, Value=0x%d]%v", Type, Code, Value, err)
+	}
+
+	_, err = vg.deviceFile.Write(buf)
+	if err != nil {
+		return fmt.Errorf("failed to write raw event: [Type=0x%x, Code=0x%x, Value=0x%d]%v", Type, Code, Value, err)
 	}
 
 	return syncEvents(vg.deviceFile)
