@@ -172,6 +172,11 @@ func fetchSyspath(deviceFile *os.File) (string, error) {
 	path := make([]byte, 65)
 	err := ioctl(deviceFile, uiGetSysname, uintptr(unsafe.Pointer(&path[0])))
 
+	firstNull := bytes.IndexByte(path, 0)
+	if firstNull != -1 {
+		path = path[0:firstNull]
+	}
+
 	sysInputDir = sysInputDir + string(path)
 	return sysInputDir, err
 }
