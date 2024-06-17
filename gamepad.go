@@ -364,3 +364,7 @@ func createVGamepadDevice(path string, name []byte, vendor uint16, product uint1
 func denormalizeInput(value float32) int32 {
 	return int32(value * MaximumAxisValue)
 }
+
+func (vg vGamepad) FetchSyspath() (string, error) {
+	return fetchSyspath(vg.deviceFile)
+}
