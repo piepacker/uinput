@@ -67,6 +67,9 @@ type Gamepad interface {
 	// HatRelease will issue a hat-release event in the given direction
 	HatRelease(direction HatDirection) error
 
+	// FetchSysPath will return the syspath to the device file.
+	FetchSyspath() (string, error)
+
 	io.Closer
 }
 
